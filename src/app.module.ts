@@ -7,6 +7,6 @@ import { TaskModule } from './modules/task/task.module';
 @Module({
   imports: [AuthModule, TaskModule],
   // providers: [TaskService,databaseProvider[0]],
-  exports: ['DATABASE_CONNECTION'],
+  // exports: ['DATABASE_CONNECTION'],
 })
 export class AppModule {}
