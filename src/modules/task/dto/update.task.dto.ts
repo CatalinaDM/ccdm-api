@@ -1,4 +1,10 @@
-import {  IsBoolean, IsOptional, IsString, MaxLength, maxLength, MinLength } from 'class-validator';
+import {
+  IsBoolean,
+  IsOptional,
+  IsString,
+  MaxLength,
+  MinLength,
+} from 'class-validator';
 
 export class UpdateTaskDto {
   @IsString({ message: 'El nombre debe ser una cadena de texto' })

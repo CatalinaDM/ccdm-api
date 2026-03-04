@@ -1,16 +1,14 @@
-import { IsBoolean, IsNotEmpty, IsNumber, IsString, Max, Min,IsInt } from 'class-validator';
-
+import { IsBoolean, Length } from 'class-validator';
+import { IsNotEmpty, IsNumber, IsString, IsInt } from 'class-validator';
 
 export class CreateTaskDto {
   @IsString()
   @IsNotEmpty()
-  @Min(3)
-  @Max(100)
+  @Length(3, 500)
   name: string;
   @IsString()
   @IsNotEmpty()
-  @Min(3)
-  @Max(500)
+  @Length(3, 500)
   description: string;
   @IsBoolean()
   @IsNotEmpty()

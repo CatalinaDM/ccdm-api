@@ -3,47 +3,51 @@ import { CreateTaskDto } from './dto/create-task.dto';
 import { Client } from 'pg';
 import { Task } from './entities/task.entity';
 import { UpdateTaskDto } from './dto/update.task.dto';
+import { PrismaService } from 'src/prisma.service';
 
 @Injectable()
 export class TaskService {
-  constructor(@Inject('DATABASE_CONNECTION') private db: Client) {}
+  constructor(
+    @Inject('DATABASE_CONNECTION')
+    private db: Client,
+    private prisma: PrismaService,
+  ) {}
   private tasks: any[] = [];
-
   public async getTasks(): Promise<Task[]> {
-    const query = 'SELECT * FROM task';
-    const result = await this.db.query(query);
-    return result.rows;
+    const tasks = await this.prisma.task.findMany();
+
+    return tasks;
   }
-  public async getTaskById(id: number): Promise<Task> {
-    const query = `SELECT * FROM tasks WHERE id = '${id}'`;
-    const results = (await this.db.query(query)).rows;
-    return results[0];
-  }
-  public async insertTask(task: CreateTaskDto): Promise<number> {
-    const query = 'INSERT INTO task (name, description, priority, user_id) VALUES ($1, $2, $3, $4) RETURNING id';
-    const result = await this.db.query(query, [
-      task.name,
-      task.description,
-      task.priority,
-      task.user_id,
-    ]);
-    return result.oid;
+  public async getTaskById(id: number): Promise<Task | null> {
+    const task = await this.prisma.task.findUnique({
+      where: { id: id },
+    });
+    return task;
   }
 
-  public async updateTask(id: number, taskUpdated: UpdateTaskDto): Promise<any> {
-    const task = await this.getTaskById(id);
-    task.name = taskUpdated.name ?? task.name;
-    task.description = taskUpdated.description ?? task.description;
-    task.priority = taskUpdated.priority ?? task.priority;
-    const query = `UPDATE tasks SET name = '${task.name}', description = '${task.description}', priority = ${task.priority} WHERE id = ${id} RETURNING *`;
-    const result = await this.db.query(query);
-    return result.rows[0];
+  public async insertTask(task: CreateTaskDto): Promise<any> {
+    const newTask = await this.prisma.task.create({
+      data: task,
+    });
+    return newTask;
+  }
+
+  public async updateTask(
+    id: number,
+    taskUpdated: UpdateTaskDto,
+  ): Promise<any> {
+    console.log(taskUpdated);
+    const task = await this.prisma.task.update({
+      where: { id: id },
+      data: taskUpdated,
+    });
+    return task;
   }
 
   public async deleteTask(id: number): Promise<boolean> {
-    const sql = `DELETE FROM tasks WHERE id = ${id}`;
-    const result = await this.db.query(sql);
-
-    return result.rows.length > 0;
+    const task = await this.prisma.task.delete({
+      where: { id: id },
+    });
+    return !!task;
   }
 }

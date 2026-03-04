@@ -7,6 +7,7 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.useGlobalPipes(
     new ValidationPipe({
+      skipNullProperties: true,
       whitelist: true,
     }),
   );
@@ -18,7 +19,7 @@ async function bootstrap() {
     .addTag('tasks')
     .build();
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('', app, document);
-  await app.listen(process.env.PORT ?? 3000);
+  SwaggerModule.setup('api/docs', app, document);
+  await app.listen(process.env.PORT ?? 3001);
 }
 void bootstrap();
