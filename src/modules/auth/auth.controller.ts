@@ -1,29 +1,44 @@
-import { Controller, Get, HttpCode, Post, HttpStatus } from '@nestjs/common';
+import { Controller, Get, HttpCode, Post, HttpStatus, Body } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { ApiOperation } from '@nestjs/swagger';
 import { AuthDto } from './dto/auth.dto';
-import { JwtService } from '@nestjs/jwt';
+import { UtilService } from '../../common/services/util.service';
 @Controller('/api/auth')
 export class AuthController {
   constructor(
     private readonly authSvc: AuthService,
-    private readonly jwtSvc: JwtService,
+    private readonly utilSvc: UtilService,
   ) {}
   // POST /register 201
   @Post('login')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Verifica credenciales de usuario y genera un JWT' })
-  public login(@Body() auth: AuthDto): string {
+  public async login(@Body() auth: AuthDto): Promise<any> {
     const { username, password } = auth;
-    const jwt = await this.jwtSvc.signAsync(auth, { secret: process.env.JWT_SECRET_KEY });
-//TODO: Verificar usuario y contraseña
-//TODO: Obtener la información a enviar 
-//TODO: 
-//TODO:
+    //TODO: Verificar usuario y contraseña
+    const user = await this.authSvc.getUserByUsername(username);
+    if (!user) {
+      throw new Error('El usuario y/o constraseña es incorrecto');
+    }
+    if (await this.utilSvc.checkPassword(password, user.password!)) {
+      //Obtener información a enviar (payload)
+      const { password,...payload } = user;
 
-    //return this.authSvc.logIn();
-    return jwt;
+      //Gererar token de acceso po 60s
+      const jwt = await this.utilSvc.generarJWT(payload);
+      // FIXME: Generar refresh token por 7d
+        return { access_token: jwt, refresh_token: ''};
+    } else {
+      throw new Error('El usuario y/o constraseña es incorrecto');
+    }
   }
+
+  @Get('me')
+  @ApiOperation({ summary: 'Extraer el ID del usuario desde el token y busca la información '})
+  public getMe(): string {
+    return this.authSvc.getMe();
+  }
+
   @Get('register')
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Registra un nuevo usuario' })
