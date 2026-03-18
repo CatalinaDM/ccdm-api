@@ -16,17 +16,22 @@ export class UserService {
   ) {}
 
   // Obtener todos los usuarios
-  public async getUsers(): Promise<User[]> {
+  public async getUsers(id: number): Promise<User[]> {
     const users = await this.prisma.user.findMany({
-      orderBy: { id: 'asc' },]
+      orderBy: [{ id: 'asc' }],
       select: {
         id: true,
         name: true,
         lastname: true,
         username: true,
         created_at: true,
-       }
-      });
+      },
+      where: {
+        id: {
+          not: id,
+        },
+      },
+    });
     return users;
   }
 
@@ -41,6 +46,13 @@ export class UserService {
   public async getTasksByUser(id: number): Promise<Task[]> {
     return await this.prisma.task.findMany({
       where: { user_id: id }, // Filtra las tareas por el ID del usuario
+    });
+  }
+  public async getUserByUsername(username: string) {
+    return await this.prisma.user.findUnique({
+      where: {
+        username: username,
+      },
     });
   }
 

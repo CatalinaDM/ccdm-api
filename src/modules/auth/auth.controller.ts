@@ -1,4 +1,11 @@
-import { Controller, Get, HttpCode, Post, HttpStatus, Body } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  HttpCode,
+  Post,
+  HttpStatus,
+  Body,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { ApiOperation } from '@nestjs/swagger';
 import { AuthDto } from './dto/auth.dto';
@@ -27,17 +34,17 @@ export class AuthController {
       //Gererar token de acceso po 60s
       const jwt = await this.utilSvc.generarJWT(payload);
       // FIXME: Generar refresh token por 7d
-        return { access_token: jwt, refresh_token: ''};
+      return { access_token: jwt, refresh_token: '' };
     } else {
       throw new Error('El usuario y/o constraseña es incorrecto');
     }
   }
 
   @Get('me')
-  @ApiOperation({ summary: 'Extraer el ID del usuario desde el token y busca la información '})
-  public getMe(): string {
-    return this.authSvc.getMe();
-  }
+  @ApiOperation({
+    summary: 'Extraer el ID del usuario desde el token y busca la información ',
+  })
+  public async getProfile(): Promise<any> {}
 
   @Get('register')
   @HttpCode(HttpStatus.CREATED)
@@ -48,13 +55,18 @@ export class AuthController {
 
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Recibe un Refresh Token, valida que no hay expirado y entrga un nuevo Access Token' })
+  @ApiOperation({
+    summary:
+      'Recibe un Refresh Token, valida que no hay expirado y entrga un nuevo Access Token',
+  })
   public refreshToken(): string {
     return this.authSvc.refreshToken();
   }
   @Post('logout')
   @HttpCode(HttpStatus.NO_CONTENT)
-  @ApiOperation({ summary: 'Invalida los tokens en el ldo del servidor y limpia las cookies' })
+  @ApiOperation({
+    summary: 'Invalida los tokens en el ldo del servidor y limpia las cookies',
+  })
   public logOut(): string {
     return this.authSvc.logOut();
   }

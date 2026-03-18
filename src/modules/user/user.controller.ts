@@ -10,27 +10,32 @@ import {
   HttpException,
   HttpStatus,
   HttpCode,
+  UseGuards,
+  Req,
 } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update.user.dto';
 import { UtilService } from 'src/common/services/util.service';
-
+import { AuthGuard } from 'src/common/guards/auth.guard';
 
 @ApiTags('users')
+@UseGuards(AuthGuard)
 @Controller('/api/user')
 export class UserController {
-  constructor(private readonly userSvc: UserService,
-              private readonly utilSvc: UtilService,
-              
+  constructor(
+    private readonly userSvc: UserService,
+    private readonly utilSvc: UtilService,
   ) {}
 
   // GET http://localhost:3000/api/user
   @Get()
   @ApiOperation({ summary: 'Obtiene todos los usuarios' })
-  public async getUsers(): Promise<any[]> {
-    return await this.userSvc.getUsers();
+  public async getUsers(@Req() request: any): Promise<any[]> {
+    const { id } = request ['user'];
+    console.log('Usuario en sesión:', id);
+    return await this.userSvc.getUsers(id);
   }
 
   // GET http://localhost:3000/api/user/1
@@ -48,16 +53,17 @@ export class UserController {
   @Post()
   @ApiOperation({ summary: 'Crea un nuevo usuario' })
   public async insertUser(@Body() user: CreateUserDto): Promise<any> {
-    
-    //Verificar que el usuario existe 
+    //Verificar que el usuario existe
     const userByUsername = await this.userSvc.getUserByUsername(user.username);
     if (userByUsername) {
-      throw new HttpException('El nombre de usuario ya existe', HttpStatus.CONFLICT);
+      throw new HttpException(
+        'El nombre de usuario ya existe',
+        HttpStatus.CONFLICT,
+      );
     }
-    //Encriptar la contraseña 
+    //Encriptar la contraseña
     const encryptedPassword = await this.utilSvc.hashPassword(user.password);
     user.password = encryptedPassword;
-    
     return await this.userSvc.insertUser(user);
   }
 
