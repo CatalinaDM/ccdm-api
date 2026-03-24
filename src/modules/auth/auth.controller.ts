@@ -5,11 +5,14 @@ import {
   Post,
   HttpStatus,
   Body,
+  UseGuards,
+  Req,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { ApiOperation } from '@nestjs/swagger';
 import { AuthDto } from './dto/auth.dto';
 import { UtilService } from '../../common/services/util.service';
+import { AuthGuard } from 'src/common/guards/auth.guard';
 @Controller('/api/auth')
 export class AuthController {
   constructor(
@@ -29,10 +32,10 @@ export class AuthController {
     }
     if (await this.utilSvc.checkPassword(password, user.password!)) {
       //Obtener información a enviar (payload)
-      const { password,...payload } = user;
+      const { password, ...payload } = user;
 
-      //Gererar token de acceso po 60s
-      const jwt = await this.utilSvc.generarJWT(payload);
+      //Gererar token de acceso po 1h
+      const jwt = await this.utilSvc.generarJWT(payload, '1h');
       // FIXME: Generar refresh token por 7d
       return { access_token: jwt, refresh_token: '' };
     } else {
@@ -41,10 +44,14 @@ export class AuthController {
   }
 
   @Get('me')
+  @UseGuards(AuthGuard)
   @ApiOperation({
     summary: 'Extraer el ID del usuario desde el token y busca la información ',
   })
-  public async getProfile(): Promise<any> {}
+  public async getProfile(@Req request: any) {
+    const user = request['user'];
+    return user;
+  }
 
   @Get('register')
   @HttpCode(HttpStatus.CREATED)

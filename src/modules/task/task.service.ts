@@ -13,14 +13,16 @@ export class TaskService {
     private prisma: PrismaService,
   ) {}
   private tasks: any[] = [];
-  public async getTasks(): Promise<Task[]> {
-    const tasks = await this.prisma.task.findMany();
+  public async getTasks(id: number): Promise<Task[]> {
+    const tasks = await this.prisma.task.findMany({
+      where: { user_id: id },
+    });
 
     return tasks;
   }
-  public async getTaskById(id: number): Promise<Task | null> {
+  public async getTaskById(id: number, user_id: number): Promise<Task | null> {
     const task = await this.prisma.task.findUnique({
-      where: { id: id },
+      where: { id, user_id },
     });
     return task;
   }
@@ -34,19 +36,20 @@ export class TaskService {
 
   public async updateTask(
     id: number,
+    user_id: number,
     taskUpdated: UpdateTaskDto,
   ): Promise<any> {
     console.log(taskUpdated);
     const task = await this.prisma.task.update({
-      where: { id: id },
+      where: { id, user_id },
       data: taskUpdated,
     });
     return task;
   }
 
-  public async deleteTask(id: number): Promise<boolean> {
+  public async deleteTask(id: number, user_id: number): Promise<boolean> {
     const task = await this.prisma.task.delete({
-      where: { id: id },
+      where: { id, user_id },
     });
     return !!task;
   }
