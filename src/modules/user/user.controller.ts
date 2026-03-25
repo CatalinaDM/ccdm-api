@@ -33,7 +33,7 @@ export class UserController {
   @Get()
   @ApiOperation({ summary: 'Obtiene todos los usuarios' })
   public async getUsers(@Req() request: any): Promise<any[]> {
-    const { id } = request ['user'];
+    const { id } = request['user'];
     console.log('Usuario en sesión:', id);
     return await this.userSvc.getUsers(id);
   }
@@ -62,7 +62,10 @@ export class UserController {
       );
     }
     //Encriptar la contraseña
-    const encryptedPassword = await this.utilSvc.hashPassword(user.password);
+    if (!user.password) {
+      throw new Error('La contraseña es requerida');
+    }
+    const encryptedPassword = await this.utilSvc.hash(user.password);
     user.password = encryptedPassword;
     return await this.userSvc.insertUser(user);
   }

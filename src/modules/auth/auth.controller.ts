@@ -13,6 +13,8 @@ import { ApiOperation } from '@nestjs/swagger';
 import { AuthDto } from './dto/auth.dto';
 import { UtilService } from '../../common/services/util.service';
 import { AuthGuard } from 'src/common/guards/auth.guard';
+import { AppException } from 'src/common/exceptions/app.exception';
+
 @Controller('/api/auth')
 export class AuthController {
   constructor(
@@ -34,10 +36,16 @@ export class AuthController {
       //Obtener información a enviar (payload)
       const { password, ...payload } = user;
 
-      //Gererar token de acceso po 1h
-      const jwt = await this.utilSvc.generarJWT(payload, '1h');
       // FIXME: Generar refresh token por 7d
-      return { access_token: jwt, refresh_token: '' };
+      const refresh = await this.utilSvc.generarJWT(payload, '7d');
+      const hashRT = await this.utilSvc.hash(refresh);
+      await this.authSvc.updateHash(payload.id, hashRT);
+
+      //Gererar token de acceso po 1h
+      payload.hash = hashRT;
+      const jwt = await this.utilSvc.generarJWT(payload, '1h');
+
+      return { access_token: jwt, refresh_token: hashRT };
     } else {
       throw new Error('El usuario y/o constraseña es incorrecto');
     }
@@ -48,33 +56,42 @@ export class AuthController {
   @ApiOperation({
     summary: 'Extraer el ID del usuario desde el token y busca la información ',
   })
-  public async getProfile(@Req request: any) {
+  public getProfile(@Req() request: any) {
     const user = request['user'];
     return user;
   }
 
-  @Get('register')
-  @HttpCode(HttpStatus.CREATED)
-  @ApiOperation({ summary: 'Registra un nuevo usuario' })
-  public register(): string {
-    return this.authSvc.register();
-  }
-
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
+  @UseGuards(AuthGuard)
   @ApiOperation({
     summary:
       'Recibe un Refresh Token, valida que no hay expirado y entrga un nuevo Access Token',
   })
-  public refreshToken(): string {
-    return this.authSvc.refreshToken();
+  public async refreshToken(@Req() request: any) {
+    // TODO: Obtener el usuario en sesión
+    const userSession = request['user'];
+    const user = await this.authSvc.getUserById(userSession.id);
+    if (!user || !user.hash)
+      throw new AppException('Acceso denegado', HttpStatus.FORBIDDEN, '0');
+    // TODO: Comparar el token recibido con el token guardado
+    if (userSession.hash != user.hash)
+      throw new AppException('Token inválido', HttpStatus.FORBIDDEN, '0');
+    // TODO: Si el Token es valido se generan nuevos tokens
+    return {
+      token: '',
+      refresh_token: '',
+    };
   }
+
   @Post('logout')
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({
-    summary: 'Invalida los tokens en el ldo del servidor y limpia las cookies',
+    summary: 'Invalida los tokens en el lado del servidor y limpia las cookies',
   })
-  public logOut(): string {
-    return this.authSvc.logOut();
+  public async logout(@Req() request: any) {
+    const session = request['user'];
+    const user = await this.authSvc.updateHash(session.id, null);
+    return user;
   }
 }

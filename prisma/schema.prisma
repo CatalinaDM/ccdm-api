@@ -15,8 +15,9 @@ model User {
   id       Int    @id @default(autoincrement())
   name     String @db.VarChar(250)
   lastname String @db.VarChar(250)
-  username String @db.VarChar(100)
+  username String @db.VarChar(100) @unique
   password String
+  hash String?
   created_at DateTime @default(now())
   tasks    Task[]
 } 
