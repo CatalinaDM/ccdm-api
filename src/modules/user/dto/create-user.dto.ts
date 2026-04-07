@@ -18,7 +18,7 @@ export class CreateUserDto {
   @IsString()
   @IsNotEmpty()
   @Length(6, 100)
-  password?: string;
+  password: string;
   created_at: Date;
   // tasks: Task[];
 }

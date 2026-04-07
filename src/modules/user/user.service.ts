@@ -67,6 +67,7 @@ export class UserService {
         username: true,
         password: false,
         hash: false,
+        created_at: true,
       },
     });
     return newUser;

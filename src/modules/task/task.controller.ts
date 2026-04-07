@@ -28,15 +28,20 @@ export class TaskController {
   public async getTaskById(
     @Param('id', ParseIntPipe)
     id: number,
+    @Req() request: any,
   ): Promise<any> {
-    const task = await this.taskSvc.getTaskById(id);
+    const user = request['user'] as User;
+    const task = await this.taskSvc.getTaskById(id, user.id);
     if (task) return task;
-    throw new HttpException('Tarea no encontrada', HttpStatus.NOT_FOUND);
+    else throw new HttpException('Task not found', HttpStatus.NOT_FOUND);
   }
 
   //* POST http://localhost:3000/api/task
   @Post()
-  public async insertTask(@Req() request: any, @Body() task: CreateTaskDto): Promise<any> {
+  public async insertTask(
+    @Req() request: any,
+    @Body() task: CreateTaskDto,
+  ): Promise<any> {
     const user = request['user'] as User;
     task.user_id = user.id;
     return await this.taskSvc.insertTask(task);
@@ -60,8 +65,16 @@ export class TaskController {
     @Param('id', ParseIntPipe)
     id: number,
   ): Promise<boolean> {
+    const user = request['user'] as User;
+    if (!user?.id) {
+      throw new HttpException(
+        'Usuario no autenticado',
+        HttpStatus.UNAUTHORIZED,
+      );
+    }
+
     try {
-      await this.taskSvc.deleteTask(id);
+      await this.taskSvc.deleteTask(id, user.id);
     } catch (error) {
       console.log(error);
       throw new HttpException('Tarea no encontrada', HttpStatus.NOT_FOUND);

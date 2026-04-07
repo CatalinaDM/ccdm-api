@@ -49,8 +49,8 @@ export class UserController {
     throw new HttpException('Usuario no encontrado', HttpStatus.NOT_FOUND);
   }
 
-  // POST http://localhost:3000/api/user
-  @Post()
+  // POST http://localhost:3000/api/user/insert
+  @Post('/insert')
   @ApiOperation({ summary: 'Crea un nuevo usuario' })
   public async insertUser(@Body() user: CreateUserDto): Promise<any> {
     //Verificar que el usuario existe
