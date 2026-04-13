@@ -75,7 +75,29 @@ export class UserController {
   public async updateUser(
     @Param('id', ParseIntPipe) id: number,
     @Body() user: UpdateUserDto,
+    @Req() request: any,
   ): Promise<any> {
+    const currentUser = request['user'];
+
+    // 1. Security check: Only admins can change other users,
+    // or a user can change their own data (except their role).
+    if (currentUser.id !== id && !currentUser.role_admin) {
+      throw new HttpException(
+        'No tiene permisos para modificar este usuario',
+        HttpStatus.FORBIDDEN,
+      );
+    }
+
+    // 2. Prevent non-admins from promoting themselves
+    if (!currentUser.role_admin && user.role_admin !== undefined) {
+      delete user.role_admin;
+    }
+
+    // 3. Hash password if it's being updated
+    if (user.password) {
+      user.password = await this.utilSvc.hash(user.password);
+    }
+
     return this.userSvc
       .updateUser(id, user)
       .then((updated) => {

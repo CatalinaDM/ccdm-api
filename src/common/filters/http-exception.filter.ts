@@ -35,7 +35,9 @@ export class AllExceptionsFilter implements ExceptionFilter {
           error:
             typeof message === 'string'
               ? message
-              : (message as any).message || JSON.stringify(message),
+              : Array.isArray((message as any).message)
+                ? (message as any).message.join(', ')
+                : (message as any).message || JSON.stringify(message),
           errorCode:
             (exception as { errorCode?: string }).errorCode || 'UNKNOWN_ERROR',
           session_id: user?.id || null,

@@ -24,6 +24,7 @@ export class UserService {
         name: true,
         lastname: true,
         username: true,
+        role_admin: true,
         created_at: true,
       },
       where: {
@@ -65,6 +66,7 @@ export class UserService {
         name: true,
         lastname: true,
         username: true,
+        role_admin: true,
         password: false,
         hash: false,
         created_at: true,

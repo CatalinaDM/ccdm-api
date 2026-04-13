@@ -1,5 +1,5 @@
-import { Length } from 'class-validator';
-import { IsNotEmpty, IsString } from 'class-validator';
+import { Length, IsOptional, IsBoolean } from 'class-validator';
+import { IsNotEmpty, IsString, Matches } from 'class-validator';
 //import { Task } from 'src/modules/task/entities/task.entity';
 
 export class CreateUserDto {
@@ -15,10 +15,12 @@ export class CreateUserDto {
   @IsNotEmpty()
   @Length(3, 100)
   username: string;
-  @IsString()
-  @IsNotEmpty()
-  @Length(6, 100)
+  @Matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#.])[A-Za-z\d@$!%*?&#.]{6,}$/, {
+    message: 'La contraseña debe contener al menos una mayúscula, una minúscula, un número y un carácter especial.',
+  })
   password: string;
+  @IsBoolean()
+  @IsOptional()
+  role_admin?: boolean;
   created_at: Date;
-  // tasks: Task[];
 }

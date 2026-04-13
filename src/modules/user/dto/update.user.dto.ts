@@ -1,4 +1,4 @@
-import { IsOptional, IsString, Length } from 'class-validator';
+import { IsBoolean, IsOptional, IsString, Length, Matches } from 'class-validator';
 //import { Task } from 'src/modules/task/entities/task.entity';
 
 export class UpdateUserDto {
@@ -22,14 +22,16 @@ export class UpdateUserDto {
   username?: string;
 
   @IsOptional()
-  @IsString({ message: 'La contraseña debe ser una cadena de texto' })
-  @Length(6, 100, {
-    message: 'La contraseña debe tener entre 6 y 100 caracteres',
+  @Matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&#.])[A-Za-z\d@$!%*?&#.]{6,}$/, {
+    message: 'La contraseña debe contener al menos una mayúscula, una minúscula, un número y un carácter especial.',
   })
   password?: string;
 
   @IsOptional()
   created_at?: Date;
+  @IsBoolean()
+  @IsOptional()
+  role_admin?: boolean;
 
   //   @IsOptional()
   //   tasks?: Task[];
