@@ -26,6 +26,9 @@ export class UserService {
         username: true,
         role_admin: true,
         created_at: true,
+        _count: {
+          select: { tasks: true },
+        },
       },
       where: {
         id: {

@@ -120,17 +120,15 @@ export class UserController {
   public async deleteUser(
     @Param('id', ParseIntPipe) id: number,
   ): Promise<boolean> {
-    try {
-      const tasks = await this.userSvc.getTasksByUser(id);
-      if (tasks.length > 0) {
-        throw new HttpException(
-          'No se puede eliminar el usuario porque tiene tareas asociadas',
-          HttpStatus.CONFLICT,
-        );
-      }
-      await this.userSvc.deleteUser(id);
-    } catch (error) {
-      console.log(error);
+    const tasks = await this.userSvc.getTasksByUser(id);
+    if (tasks.length > 0) {
+      throw new HttpException(
+        'No se puede eliminar el usuario porque tiene tareas asociadas',
+        HttpStatus.CONFLICT,
+      );
+    }
+    const deleted = await this.userSvc.deleteUser(id);
+    if (!deleted) {
       throw new HttpException('Usuario no encontrado', HttpStatus.NOT_FOUND);
     }
     return true;
